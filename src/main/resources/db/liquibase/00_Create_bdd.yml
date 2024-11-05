@@ -54,7 +54,10 @@ databaseChangeLog:
                   constraints:
                     nullable: false
               - column:
-                  name: date
+                  name: start_date
+                  type: date
+              - column:
+                  name: end_date
                   type: date
               - column:
                   name: nb_person
