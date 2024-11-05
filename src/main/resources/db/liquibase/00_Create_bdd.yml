@@ -54,7 +54,10 @@ databaseChangeLog:
                   constraints:
                     nullable: false
               - column:
-                  name: date
+                  name: start_date
+                  type: date
+              - column:
+                  name: end_date
                   type: date
               - column:
                   name: nb_person
@@ -89,20 +92,11 @@ databaseChangeLog:
                   constraints:
                     nullable: false
               - column:
-                  name: email
-                  type: varchar(255)
-                  constraints:
-                    nullable: false
-              - column:
-                  name: phone
-                  type: varchar(255)
-                  constraints:
-                    nullable: false
-              - column:
                   name: created_at
                   type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP
                   constraints:
-                    nullable: false
+                    nullable: true
 
         # Table de jointure reservation_attendee pour lier reservations et attendees
         - createTable:
@@ -300,3 +294,41 @@ databaseChangeLog:
             referencedTableName: role
             referencedColumnNames: id
             constraintName: FK_USER_ROLE_MAPPING_ROLE
+
+  - changeSet:
+        id: add-reference-to-reservation
+        author: alexitopipo
+        changes:
+          - addColumn:
+              tableName: reservation
+              columns:
+                - column:
+                    name: reference
+                    type: varchar(255)
+                    constraints:
+                      nullable: false
+                      unique: true
+
+  - changeSet:
+      id: add-trigger-set-reference
+      author: alexitopipo
+      changes:
+        - sql: |
+            CREATE TRIGGER set_reference_before_insert
+            BEFORE INSERT ON reservation
+            FOR EACH ROW
+            BEGIN
+                SET NEW.reference = CONCAT('Ref-', UNIX_TIMESTAMP(NEW.start_date), '-', UNIX_TIMESTAMP(now()));
+            END;
+
+  - changeSet:
+      id: add-default-createdat-attendees
+      author: alexitopipo
+      changes:
+        - sql: |
+            CREATE TRIGGER set_created_date_before_insert
+            BEFORE INSERT ON attendees
+            FOR EACH ROW
+            BEGIN
+                SET NEW.created_at = now();
+            END;
