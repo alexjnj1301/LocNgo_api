@@ -1,11 +1,302 @@
 databaseChangeLog:
-  -  changeSet:
-       id:  1
-       author:  alexitopipo
-       changes:
-         -  createTable:
-              tableName:  company
-              columns:
-                -  column:
-                    name:  address
-                    type:  varchar(255)
+  - changeSet:
+      id: init-bdd-tables-00
+      author: alexitopipo
+      changes:
+        # Table lieu
+        - createTable:
+            tableName: lieu
+            columns:
+              - column:
+                  name: id
+                  type: int
+                  autoIncrement: true
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: PK_LIEU
+              - column:
+                  name: name
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: address
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: city
+                  type: varchar(100)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: postal_code
+                  type: varchar(20)
+                  constraints:
+                    nullable: false
+
+        # Table reservation
+        - createTable:
+            tableName: reservation
+            columns:
+              - column:
+                  name: id
+                  type: int
+                  autoIncrement: true
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: PK_RESERVATION
+              - column:
+                  name: lieu_id
+                  type: int
+                  constraints:
+                    nullable: false
+              - column:
+                  name: date
+                  type: date
+              - column:
+                  name: nb_person
+                  type: int
+        - addForeignKeyConstraint:
+            baseTableName: reservation
+            baseColumnNames: lieu_id
+            referencedTableName: lieu
+            referencedColumnNames: id
+            constraintName: FK_RESERVATION_LIEU
+
+        # Table attendees
+        - createTable:
+            tableName: attendees
+            columns:
+              - column:
+                  name: id
+                  type: int
+                  autoIncrement: true
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: PK_ATTENDEES
+              - column:
+                  name: name
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: firstname
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: email
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: phone
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+
+        # Table de jointure reservation_attendee pour lier reservations et attendees
+        - createTable:
+            tableName: reservation_attendee
+            columns:
+              - column:
+                  name: reservation_id
+                  type: int
+                  constraints:
+                    nullable: false
+              - column:
+                  name: attendee_id
+                  type: int
+                  constraints:
+                    nullable: false
+              - addPrimaryKey:
+                  columnNames: reservation_id, attendee_id
+                  constraintName: PK_RESERVATION_ATTENDEE
+        - addForeignKeyConstraint:
+            baseTableName: reservation_attendee
+            baseColumnNames: reservation_id
+            referencedTableName: reservation
+            referencedColumnNames: id
+            constraintName: FK_RESERVATION_ATTENDEE_RESERVATION
+        - addForeignKeyConstraint:
+            baseTableName: reservation_attendee
+            baseColumnNames: attendee_id
+            referencedTableName: attendees
+            referencedColumnNames: id
+            constraintName: FK_RESERVATION_ATTENDEE_ATTENDEE
+
+        # Table lieu_image pour les images associées aux lieux
+        - createTable:
+            tableName: lieu_image
+            columns:
+              - column:
+                  name: id
+                  type: int
+                  autoIncrement: true
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: PK_LIEU_IMAGE
+              - column:
+                  name: lieu_id
+                  type: int
+                  constraints:
+                    nullable: false
+              - column:
+                  name: image_url
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            baseTableName: lieu_image
+            baseColumnNames: lieu_id
+            referencedTableName: lieu
+            referencedColumnNames: id
+            constraintName: FK_LIEU_IMAGE_LIEU
+
+        # Table service pour la liste prédéfinie des services
+        - createTable:
+            tableName: service
+            columns:
+              - column:
+                  name: id
+                  type: int
+                  autoIncrement: true
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: PK_SERVICE
+              - column:
+                  name: name
+                  type: varchar(100)
+                  constraints:
+                    nullable: false
+                    unique: true
+
+        # Table lieu_service pour la relation entre les lieux et les services
+        - createTable:
+            tableName: lieu_service
+            columns:
+              - column:
+                  name: lieu_id
+                  type: int
+                  constraints:
+                    nullable: false
+              - column:
+                  name: service_id
+                  type: int
+                  constraints:
+                    nullable: false
+              - column:
+                  name: is_present
+                  type: boolean
+                  constraints:
+                    nullable: false
+        - addPrimaryKey:
+            tableName: lieu_service
+            columnNames: lieu_id, service_id
+            constraintName: PK_LIEU_SERVICE
+        - addForeignKeyConstraint:
+            baseTableName: lieu_service
+            baseColumnNames: lieu_id
+            referencedTableName: lieu
+            referencedColumnNames: id
+            constraintName: FK_LIEU_SERVICE_LIEU
+        - addForeignKeyConstraint:
+            baseTableName: lieu_service
+            baseColumnNames: service_id
+            referencedTableName: service
+            referencedColumnNames: id
+            constraintName: FK_LIEU_SERVICE_SERVICE
+
+        # Table user
+        - createTable:
+            tableName: user
+            columns:
+              - column:
+                  name: id
+                  type: int
+                  autoIncrement: true
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: PK_USER
+              - column:
+                  name: name
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: firstname
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: email
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: password
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+
+        # Table role pour les rôles utilisateurs
+        - createTable:
+            tableName: role
+            columns:
+              - column:
+                  name: id
+                  type: int
+                  autoIncrement: true
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: PK_ROLE
+              - column:
+                  name: name
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+                    unique: true
+
+        # Table user_role_mapping pour associer users et roles
+        - createTable:
+            tableName: user_role_mapping
+            columns:
+              - column:
+                  name: user_id
+                  type: int
+                  constraints:
+                    nullable: false
+              - column:
+                  name: role_id
+                  type: int
+                  constraints:
+                    nullable: false
+              - addPrimaryKey:
+                  columnNames: user_id, role_id
+                  constraintName: PK_USER_ROLE_MAPPING
+        - addForeignKeyConstraint:
+            baseTableName: user_role_mapping
+            baseColumnNames: user_id
+            referencedTableName: user
+            referencedColumnNames: id
+            constraintName: FK_USER_ROLE_MAPPING_USER
+        - addForeignKeyConstraint:
+            baseTableName: user_role_mapping
+            baseColumnNames: role_id
+            referencedTableName: role
+            referencedColumnNames: id
+            constraintName: FK_USER_ROLE_MAPPING_ROLE
