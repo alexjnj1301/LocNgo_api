@@ -1,6 +1,5 @@
 package com.locngo.services;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.locngo.entity.Attendees;
 import com.locngo.entity.Reservation;
 import com.locngo.entity.ReservationAttendee;

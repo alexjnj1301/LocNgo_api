@@ -36,7 +36,6 @@ public class ReservationService {
         var lieu = reservation.getLieu();
         var lieuDto = new LieuDto(lieu.getId(), lieu.getName(), lieu.getAddress(), lieu.getCity(), lieu.getPostal_code());
 
-
         List<ReservationAttendeeDto> attendeesDto = reservation.getAttendees().stream()
                 .map(reservationAttendee -> {
                     var attendee = reservationAttendee.getAttendee();
@@ -117,5 +116,13 @@ public class ReservationService {
         );
 
         reservationRepository.save(updatedReservation);
+    }
+
+    public void deleteByLieuId(int lieuId) {
+        // Rechercher toutes les réservations associées au lieu
+        List<Reservation> reservations = reservationRepository.findAllByLieuId(lieuId);
+
+        // Supprimer chaque réservation une par une
+        reservations.forEach(reservation -> deleteById(reservation.getId()));
     }
 }

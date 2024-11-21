@@ -62,6 +62,12 @@ databaseChangeLog:
               - column:
                   name: nb_person
                   type: int
+              - column:
+                  name: reference
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+                    unique: true
         - addForeignKeyConstraint:
             baseTableName: reservation
             baseColumnNames: lieu_id
@@ -147,7 +153,7 @@ databaseChangeLog:
                     nullable: false
               - column:
                   name: image_url
-                  type: varchar(255)
+                  type: blob
                   constraints:
                     nullable: false
         - addForeignKeyConstraint:
@@ -157,9 +163,9 @@ databaseChangeLog:
             referencedColumnNames: id
             constraintName: FK_LIEU_IMAGE_LIEU
 
-        # Table service pour la liste prédéfinie des services
+        # Table services pour la liste prédéfinie des services
         - createTable:
-            tableName: service
+            tableName: services
             columns:
               - column:
                   name: id
@@ -168,7 +174,7 @@ databaseChangeLog:
                   constraints:
                     nullable: false
                     primaryKey: true
-                    primaryKeyName: PK_SERVICE
+                    primaryKeyName: PK_SERVICES
               - column:
                   name: name
                   type: varchar(100)
@@ -178,7 +184,7 @@ databaseChangeLog:
 
         # Table lieu_service pour la relation entre les lieux et les services
         - createTable:
-            tableName: lieu_service
+            tableName: lieu_services
             columns:
               - column:
                   name: lieu_id
@@ -186,31 +192,26 @@ databaseChangeLog:
                   constraints:
                     nullable: false
               - column:
-                  name: service_id
+                  name: services_id
                   type: int
                   constraints:
                     nullable: false
-              - column:
-                  name: is_present
-                  type: boolean
-                  constraints:
-                    nullable: false
         - addPrimaryKey:
-            tableName: lieu_service
-            columnNames: lieu_id, service_id
-            constraintName: PK_LIEU_SERVICE
+            tableName: lieu_services
+            columnNames: lieu_id, services_id
+            constraintName: PK_LIEU_SERVICES
         - addForeignKeyConstraint:
-            baseTableName: lieu_service
+            baseTableName: lieu_services
             baseColumnNames: lieu_id
             referencedTableName: lieu
             referencedColumnNames: id
-            constraintName: FK_LIEU_SERVICE_LIEU
+            constraintName: FK_LIEU_SERVICES_LIEU
         - addForeignKeyConstraint:
-            baseTableName: lieu_service
-            baseColumnNames: service_id
-            referencedTableName: service
+            baseTableName: lieu_services
+            baseColumnNames: services_id
+            referencedTableName: services
             referencedColumnNames: id
-            constraintName: FK_LIEU_SERVICE_SERVICE
+            constraintName: FK_LIEU_SERVICES_SERVICES
 
         # Table user
         - createTable:
@@ -294,20 +295,6 @@ databaseChangeLog:
             referencedTableName: role
             referencedColumnNames: id
             constraintName: FK_USER_ROLE_MAPPING_ROLE
-
-  - changeSet:
-        id: add-reference-to-reservation
-        author: alexitopipo
-        changes:
-          - addColumn:
-              tableName: reservation
-              columns:
-                - column:
-                    name: reference
-                    type: varchar(255)
-                    constraints:
-                      nullable: false
-                      unique: true
 
   - changeSet:
       id: add-trigger-set-reference
