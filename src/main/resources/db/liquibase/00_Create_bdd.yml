@@ -319,3 +319,26 @@ databaseChangeLog:
             BEGIN
                 SET NEW.created_at = now();
             END;
+
+  - changeSet:
+      id: add-phone-column-to-user
+      author: alexitopipo
+      changes:
+          - addColumn:
+              tableName: user
+              columns:
+              - column:
+                  name: phone
+                  type: varchar(20)
+                  constraints:
+                      nullable: true
+
+  - changeSet:
+      id: change-user-column-name-to-lastname
+      author: alexitopipo
+      changes:
+          - renameColumn:
+              tableName: user
+              oldColumnName: name
+              newColumnName: lastname
+              columnDataType: varchar(255)
