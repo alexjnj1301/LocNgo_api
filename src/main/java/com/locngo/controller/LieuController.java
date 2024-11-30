@@ -5,6 +5,7 @@ import com.locngo.dto.LieuDto;
 import com.locngo.dto.LieuResponseDto;
 import com.locngo.services.LieuService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -32,16 +33,19 @@ public class LieuController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole(T(com.locngo.constants.RoleConstants).ROLE_PROPRIETOR)")
     public LieuDto createLieu(@RequestBody LieuDto lieuDto) {
         return lieuService.createLieu(lieuDto);
     }
 
     @PostMapping("{id}/addservice")
+    @PreAuthorize("hasRole(T(com.locngo.constants.RoleConstants).ROLE_PROPRIETOR)")
     public LieuDto addServicesToLieu(@PathVariable int id, @RequestBody AddServiceToLieuDto addServiceToLieuDto) {
         return lieuService.addServicesToLieu(id, addServiceToLieuDto.servicesId());
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole(T(com.locngo.constants.RoleConstants).ROLE_PROPRIETOR)")
     public void deleteLieu(@PathVariable int id) {
         lieuService.deleteById(id);
     }

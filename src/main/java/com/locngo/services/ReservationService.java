@@ -119,10 +119,8 @@ public class ReservationService {
     }
 
     public void deleteByLieuId(int lieuId) {
-        // Rechercher toutes les réservations associées au lieu
         List<Reservation> reservations = reservationRepository.findAllByLieuId(lieuId);
 
-        // Supprimer chaque réservation une par une
         reservations.forEach(reservation -> deleteById(reservation.getId()));
     }
 }

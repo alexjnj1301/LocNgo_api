@@ -5,6 +5,7 @@ import com.locngo.dto.ReservationDto;
 import com.locngo.dto.UpdateReservation;
 import com.locngo.services.ReservationService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -18,6 +19,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/reservations")
+@PreAuthorize("hasRole(T(com.locngo.constants.RoleConstants).ROLE_USER)")
 public class ReservationController {
     @Autowired
     private ReservationService reservationService;
@@ -28,6 +30,7 @@ public class ReservationController {
     }
 
     @GetMapping
+    @PreAuthorize("hasRole(T(com.locngo.constants.RoleConstants).ROLE_ADMIN)")
     public List<ReservationDto> getAllReservations() {
         return reservationService.findAll();
     }

@@ -40,9 +40,8 @@ public class LieuService {
 
     public LieuResponseDto findById(int id) {
         var lieu = lieuRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Lieu not found"));
+                .orElseThrow(() -> new LieuNotFoundException("Lieu not found with id " + id));
 
-        // Conversion des reservations
         List<ReservationDto> reservationsDto = lieu.getReservations().stream()
                 .map(reservation -> new ReservationDto(
                         reservation.getId(),
@@ -55,7 +54,6 @@ public class LieuService {
                 ))
                 .collect(Collectors.toList());
 
-        // Conversion des images
         List<LieuImageDto> imagesDto = lieu.getImages().stream()
                 .map(image -> new LieuImageDto(
                         image.getId(),
@@ -64,7 +62,6 @@ public class LieuService {
                 ))
                 .collect(Collectors.toList());
 
-        // Conversion des services
         List<SimpleServiceDto> servicesDto = lieu.getServices().stream()
                 .map(serviceMapping -> new SimpleServiceDto(
                         serviceMapping.getServices().getId(),
@@ -72,7 +69,6 @@ public class LieuService {
                 ))
                 .collect(Collectors.toList());
 
-        // Construction du LieuResponseDto
         return new LieuResponseDto(
                 lieu.getId(),
                 lieu.getName(),
@@ -117,20 +113,15 @@ public class LieuService {
 
     @Transactional
     public void deleteById(int lieuId) {
-        // Vérifier si le lieu existe
         var lieu = lieuRepository.findById(lieuId)
                 .orElseThrow(() -> new RuntimeException("Lieu with id " + lieuId + " not found"));
 
-        // Supprimer les relations dans LieuServices via le service
         lieuServicesService.deleteByLieuId(lieuId);
 
-        // Supprimer les réservations associées via le service
         reservationService.deleteByLieuId(lieuId);
 
-        // Supprimer les images associées via le service
         lieuImageService.deleteByLieuId(lieuId);
 
-        // Supprimer le lieu
         lieuRepository.delete(lieu);
     }
 }

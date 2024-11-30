@@ -10,3 +10,6 @@ spring:
   liquibase:
     change-log: classpath:db/liquibase/master.yml
     default-schema: locngo
+jwt:
+  secret: f75b4b93f2743033db2ea2afe54d586a5cafe34ffe719090c75e0a8cda2930da
+  expirationMs: 7200000
