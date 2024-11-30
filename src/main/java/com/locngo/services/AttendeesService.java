@@ -2,6 +2,8 @@ package com.locngo.services;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.locngo.dto.AttendeeDto;
+import com.locngo.dto.ReservationDto;
+import com.locngo.dto.SimpleReservationDto;
 import com.locngo.entity.Attendees;
 import com.locngo.repository.AttendeesRepository;
 import jakarta.transaction.Transactional;
@@ -24,13 +26,20 @@ public class AttendeesService {
 
 
     public AttendeeDto findById(int id) {
-        return this.objectMapper.convertValue(attendeesRepository.findById(id), AttendeeDto.class);
+        var attendee = attendeesRepository.findById(id);
+        var listReservationDto = new ArrayList<SimpleReservationDto>();
+        attendee.getReservations().forEach(reservation -> {
+            var reservationDto = new SimpleReservationDto(reservation.getReservation().getId(), reservation.getReservation().getStart_date(), reservation.getReservation().getEnd_date(), reservation.getReservation().getNb_person(), reservation.getReservation().getReference());
+            listReservationDto.add(reservationDto);
+        });
+        return new AttendeeDto(attendee.getId(), attendee.getName(), attendee.getFirstname(), listReservationDto);
     }
 
     public List<AttendeeDto> findAll() {
         var attendees = new ArrayList<AttendeeDto>();
         attendeesRepository.findAll().forEach(attendee -> {
-            attendees.add(this.objectMapper.convertValue(attendee, AttendeeDto.class));
+            var attendeeDto = new AttendeeDto(attendee.getId(), attendee.getName(), attendee.getFirstname(), null);
+            attendees.add(attendeeDto);
         });
         return attendees;
     }
