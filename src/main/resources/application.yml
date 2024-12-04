@@ -2,7 +2,7 @@ spring:
   application:
     name: "locngo"
     frontend:
-      url: "http://localhost:4200"
+      url: http://localhost:4200
   datasource:
       url: "jdbc:mysql://localhost:3306/locngo?useSSL=false"
       username: "root"
