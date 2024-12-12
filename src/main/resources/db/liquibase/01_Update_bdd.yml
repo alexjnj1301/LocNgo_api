@@ -1,0 +1,43 @@
+databaseChangeLog:
+  - changeSet:
+      id: add-default-user
+      author: alexitopipo
+      changes:
+        - insert:
+            tableName: user
+            columns:
+              - column:
+                  name: id
+                  value: 999
+              - column:
+                  name: lastname
+                  value: "Default"
+              - column:
+                  name: firstname
+                  value: "User"
+              - column:
+                  name: email
+                  value: "default@example.com"
+              - column:
+                  name: phone
+                  value: "0000000000"
+              - column:
+                  name: password
+                  value: "$2a$10$hWY8vn1fVtXN9a./GM1hzeUu48e.7ICWxvhii0ZQ0vQVVFwy6yU1i"
+  - changeSet:
+      id: update-bdd-reservation-table-add-user_id
+      author: alexitopipo
+      changes:
+        - addColumn:
+            tableName: reservation
+            columns:
+              - column:
+                  name: user_id
+                  type: int
+                  defaultValue: 999
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_user_id
+                    references: user(id)
+                    referencedTableName: user
+                    referencedColumnNames: id

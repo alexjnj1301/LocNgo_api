@@ -53,7 +53,7 @@ public class UserService {
         }
 
         var user = new User(registerRequest.id(), registerRequest.lastname(), registerRequest.firstname(),
-                registerRequest.email(), registerRequest.phone(), passwordEncoder.encode(registerRequest.password()), new ArrayList<>());
+                registerRequest.email(), registerRequest.phone(), passwordEncoder.encode(registerRequest.password()), null, new ArrayList<>());
 
         var savedUser = userRepository.save(user);
 
@@ -64,11 +64,12 @@ public class UserService {
 
         return userRepository.save(new User(
                 savedUser.getId(),
-                savedUser.getFirstname(),
                 savedUser.getLastname(),
+                savedUser.getFirstname(),
                 savedUser.getEmail(),
                 savedUser.getPhone(),
                 savedUser.getPassword(),
+                null,
                 rolesList
         ));
     }
@@ -84,5 +85,9 @@ public class UserService {
 
     public User findById(int id) {
         return userRepository.findById(id).orElseThrow(() -> new UserNotFoundException("User not found with id: " + id));
+    }
+
+    public User findByEmail(String email) {
+        return userRepository.findByEmail(email).orElseThrow(() -> new UserNotFoundException("User not found with email: " + email));
     }
 }

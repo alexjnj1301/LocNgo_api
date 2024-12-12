@@ -4,13 +4,18 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.locngo.dto.*;
 import com.locngo.entity.Attendees;
 import com.locngo.entity.Reservation;
+import com.locngo.entity.User;
 import com.locngo.exceptions.ReservationNotFoundException;
+import com.locngo.exceptions.UserNotFoundException;
 import com.locngo.repository.ReservationRepository;
+import com.locngo.utils.JwtUtils;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.nio.file.AccessDeniedException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -24,6 +29,10 @@ public class ReservationService {
     private AttendeesService attendeesService;
     @Autowired
     private ReservationAttendeeService reservationAttendeeService;
+    @Autowired
+    private JwtUtils jwtUtils;
+    @Autowired
+    private UserService userService;
 
     public ReservationService(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
@@ -58,11 +67,12 @@ public class ReservationService {
         return reservations;
     }
 
-    public ReservationDto createReservation(CreateReservation reservationDto) {
-        var reservation = new Reservation(reservationDto.id(), reservationDto.lieu(), reservationDto.start_date(), reservationDto.end_date(),
+    public ReservationDto createReservation(CreateReservation reservationDto, String token) {
+        var reservation = new Reservation(reservationDto.id(), reservationDto.lieu(), null, reservationDto.start_date(), reservationDto.end_date(),
                 reservationDto.attendees() != null ? reservationDto.attendees().size() : 0,
                 reservationDto.reference(), null);
 
+        reservation.setUser(userService.findByEmail(jwtUtils.getEmailFromJwtToken(token)));
         reservation = reservationRepository.save(reservation);
 
         if (reservationDto.attendees() != null) {
@@ -96,7 +106,7 @@ public class ReservationService {
                         String.format("Reservation with id %s not found", reservation.id())
                 ));
 
-        var updatedReservation = new Reservation(reservation.id(), reservation.lieu(), reservation.start_date(), reservation.end_date(),
+        var updatedReservation = new Reservation(reservation.id(), reservation.lieu(), reservation.user(), reservation.start_date(), reservation.end_date(),
                 reservation.attendees() != null ? reservation.attendees().size() : 0,
                 existingReservation.getReference(), existingReservation.getAttendees());
 
@@ -118,9 +128,28 @@ public class ReservationService {
         reservationRepository.save(updatedReservation);
     }
 
+    @Transactional
     public void deleteByLieuId(int lieuId) {
         List<Reservation> reservations = reservationRepository.findAllByLieuId(lieuId);
 
         reservations.forEach(reservation -> deleteById(reservation.getId()));
+    }
+
+    @Transactional(readOnly = true)
+    public List<ReservationDto> getReservationsByUserId(int userId, String token) throws AccessDeniedException {
+        String emailFromToken = jwtUtils.getEmailFromJwtToken(token);
+        List<String> rolesFromToken = jwtUtils.getRolesFromJwtToken(token);
+
+        User connectedUser = userService.findByEmail(emailFromToken);
+
+        if (connectedUser.getId() != userId && !rolesFromToken.contains("ROLE_ADMIN")) {
+            throw new AccessDeniedException("You do not have permission to access these reservations");
+        }
+
+        return reservationRepository.findByUserId(userId).stream()
+                .map(reservation ->
+                        this.objectMapper.convertValue(reservation, ReservationDto.class)
+                )
+                .collect(Collectors.toList());
     }
 }

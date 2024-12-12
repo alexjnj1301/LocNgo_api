@@ -5,6 +5,7 @@ import com.locngo.dto.ReservationDto;
 import com.locngo.dto.UpdateReservation;
 import com.locngo.services.ReservationService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,9 +13,11 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.nio.file.AccessDeniedException;
 import java.util.List;
 
 @RestController
@@ -36,8 +39,9 @@ public class ReservationController {
     }
 
     @PostMapping
-    public ReservationDto createReservation(@RequestBody CreateReservation createReservationDto) {
-        return reservationService.createReservation(createReservationDto);
+    public ReservationDto createReservation(@RequestBody CreateReservation createReservationDto, @RequestHeader("Authorization") String token) throws AccessDeniedException {
+        token = token.substring(7);
+        return reservationService.createReservation(createReservationDto, token);
     }
 
     @DeleteMapping("/{id}")
@@ -47,7 +51,14 @@ public class ReservationController {
 
     @PutMapping("/{id}")
     public void updateReservation(@PathVariable int id, @RequestBody UpdateReservation reservation) {
-        var updateReservation = new UpdateReservation(id, reservation.lieu(), reservation.start_date(), reservation.end_date(), reservation.nb_person(), reservation.attendees());
+        var updateReservation = new UpdateReservation(id, reservation.lieu(), reservation.user(), reservation.start_date(), reservation.end_date(), reservation.nb_person(), reservation.attendees());
         reservationService.updateById(updateReservation);
+    }
+
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<List<ReservationDto>> getReservationsByUserId(@PathVariable int userId, @RequestHeader("Authorization") String authorizationHeader) throws AccessDeniedException {
+        var token = authorizationHeader.substring(7);
+        List<ReservationDto> reservations = reservationService.getReservationsByUserId(userId, token);
+        return ResponseEntity.ok(reservations);
     }
 }

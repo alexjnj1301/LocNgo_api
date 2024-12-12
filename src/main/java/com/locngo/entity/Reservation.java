@@ -25,6 +25,11 @@ public class Reservation {
     @JsonIgnoreProperties({"reservations", "images", "services"})
     private Lieu lieu;
 
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    @JsonIgnoreProperties({"reservations"})
+    private User user;
+
     @Temporal(TemporalType.DATE)
     private Date start_date;
 

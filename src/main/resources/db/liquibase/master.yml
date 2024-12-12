@@ -2,3 +2,7 @@ databaseChangeLog:
         - include:
                 file: "classpath:db/liquibase/00_Create_bdd.yml"
                 relativeToChangelogFile: false
+
+        - include:
+                file: "classpath:db/liquibase/01_Update_bdd.yml"
+                relativeToChangelogFile: false

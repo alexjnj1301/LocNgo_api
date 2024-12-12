@@ -1,6 +1,7 @@
 package com.locngo.dto;
 
 import com.locngo.entity.Lieu;
+import com.locngo.entity.User;
 
 import java.util.Date;
 import java.util.List;
