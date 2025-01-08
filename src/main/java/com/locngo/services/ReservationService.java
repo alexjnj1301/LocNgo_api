@@ -3,6 +3,7 @@ package com.locngo.services;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.locngo.dto.*;
 import com.locngo.entity.Attendees;
+import com.locngo.entity.LieuImage;
 import com.locngo.entity.Reservation;
 import com.locngo.entity.User;
 import com.locngo.exceptions.ReservationNotFoundException;
@@ -136,20 +137,25 @@ public class ReservationService {
     }
 
     @Transactional(readOnly = true)
-    public List<ReservationDto> getReservationsByUserId(int userId, String token) throws AccessDeniedException {
+    public List<AllReservationsByUserIdDto> getReservationsByUserId(int userId, String token) throws AccessDeniedException {
         String emailFromToken = jwtUtils.getEmailFromJwtToken(token);
         List<String> rolesFromToken = jwtUtils.getRolesFromJwtToken(token);
 
         User connectedUser = userService.findByEmail(emailFromToken);
 
-        if (connectedUser.getId() != userId && !rolesFromToken.contains("ROLE_ADMIN")) {
+        if (connectedUser.getId() != userId || !rolesFromToken.contains("ROLE_ADMIN")) {
             throw new AccessDeniedException("You do not have permission to access these reservations");
         }
 
         return reservationRepository.findByUserId(userId).stream()
-                .map(reservation ->
-                        this.objectMapper.convertValue(reservation, ReservationDto.class)
-                )
-                .collect(Collectors.toList());
+            .map(
+                    reservation -> {
+                        List<String> lieuImages = reservation.getLieu().getImages().stream()
+                                .map(LieuImage::getImageUrl)
+                                .collect(Collectors.toList());
+                        return new AllReservationsByUserIdDto(reservation.getId(), lieuImages, reservation.getStart_date(), reservation.getEnd_date(), reservation.getReference());
+                    }
+            )
+            .collect(Collectors.toList());
     }
 }

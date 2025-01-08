@@ -1,6 +1,7 @@
 package com.locngo.controller;
 
 import com.locngo.dto.AddServiceToLieuDto;
+import com.locngo.dto.AllLieuResponseDto;
 import com.locngo.dto.LieuDto;
 import com.locngo.dto.LieuResponseDto;
 import com.locngo.services.LieuService;
@@ -28,7 +29,7 @@ public class LieuController {
     }
 
     @GetMapping
-    public List<LieuResponseDto> findAll() {
+    public List<AllLieuResponseDto> findAll() {
         return lieuService.findAll();
     }
 

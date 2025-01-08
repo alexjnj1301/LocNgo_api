@@ -1,5 +1,6 @@
 package com.locngo.controller;
 
+import com.locngo.dto.AllReservationsByUserIdDto;
 import com.locngo.dto.CreateReservation;
 import com.locngo.dto.ReservationDto;
 import com.locngo.dto.UpdateReservation;
@@ -56,9 +57,9 @@ public class ReservationController {
     }
 
     @GetMapping("/user/{userId}")
-    public ResponseEntity<List<ReservationDto>> getReservationsByUserId(@PathVariable int userId, @RequestHeader("Authorization") String authorizationHeader) throws AccessDeniedException {
+    public ResponseEntity<List<AllReservationsByUserIdDto>> getReservationsByUserId(@PathVariable int userId, @RequestHeader("Authorization") String authorizationHeader) throws AccessDeniedException {
         var token = authorizationHeader.substring(7);
-        List<ReservationDto> reservations = reservationService.getReservationsByUserId(userId, token);
+        List<AllReservationsByUserIdDto> reservations = reservationService.getReservationsByUserId(userId, token);
         return ResponseEntity.ok(reservations);
     }
 }

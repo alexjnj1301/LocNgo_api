@@ -13,3 +13,6 @@ spring:
 jwt:
   secret: f75b4b93f2743033db2ea2afe54d586a5cafe34ffe719090c75e0a8cda2930da
   expirationMs: 7200000
+
+links:
+    replacement: "https://media.istockphoto.com/id/1409329028/vector/no-picture-available-placeholder-thumbnail-icon-illustration-design.jpg?s=612x612&w=0&k=20&c=_zOuJu755g2eEUioiOUdz_mHKJQJn-tDgIAhQzyeKUQ="

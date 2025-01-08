@@ -1,6 +1,7 @@
 package com.locngo.services;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.locngo.dto.AllLieuResponseDto;
 import com.locngo.dto.LieuDto;
 import com.locngo.dto.LieuImageDto;
 import com.locngo.dto.LieuResponseDto;
@@ -81,16 +82,16 @@ public class LieuService {
         );
     }
 
-    public List<LieuResponseDto> findAll() {
+    public List<AllLieuResponseDto> findAll() {
         return lieuRepository.findAll().stream()
-                .map(lieu -> new LieuResponseDto(
+                .map(lieu -> new AllLieuResponseDto(
                         lieu.getId(),
                         lieu.getName(),
                         lieu.getAddress(),
                         lieu.getCity(),
                         lieu.getPostal_code(),
                         null,
-                        null,
+                        this.lieuImageService.findByLieuId(lieu.getId()).getFirst().imageUrl(),
                         null
                 ))
                 .collect(Collectors.toList());
