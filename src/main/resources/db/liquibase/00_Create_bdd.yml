@@ -54,11 +54,20 @@ databaseChangeLog:
                   constraints:
                     nullable: false
               - column:
-                  name: date
+                  name: start_date
+                  type: date
+              - column:
+                  name: end_date
                   type: date
               - column:
                   name: nb_person
                   type: int
+              - column:
+                  name: reference
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+                    unique: true
         - addForeignKeyConstraint:
             baseTableName: reservation
             baseColumnNames: lieu_id
@@ -89,20 +98,11 @@ databaseChangeLog:
                   constraints:
                     nullable: false
               - column:
-                  name: email
-                  type: varchar(255)
-                  constraints:
-                    nullable: false
-              - column:
-                  name: phone
-                  type: varchar(255)
-                  constraints:
-                    nullable: false
-              - column:
                   name: created_at
                   type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP
                   constraints:
-                    nullable: false
+                    nullable: true
 
         # Table de jointure reservation_attendee pour lier reservations et attendees
         - createTable:
@@ -153,7 +153,7 @@ databaseChangeLog:
                     nullable: false
               - column:
                   name: image_url
-                  type: varchar(255)
+                  type: blob
                   constraints:
                     nullable: false
         - addForeignKeyConstraint:
@@ -163,9 +163,9 @@ databaseChangeLog:
             referencedColumnNames: id
             constraintName: FK_LIEU_IMAGE_LIEU
 
-        # Table service pour la liste prédéfinie des services
+        # Table services pour la liste prédéfinie des services
         - createTable:
-            tableName: service
+            tableName: services
             columns:
               - column:
                   name: id
@@ -174,7 +174,7 @@ databaseChangeLog:
                   constraints:
                     nullable: false
                     primaryKey: true
-                    primaryKeyName: PK_SERVICE
+                    primaryKeyName: PK_SERVICES
               - column:
                   name: name
                   type: varchar(100)
@@ -184,7 +184,7 @@ databaseChangeLog:
 
         # Table lieu_service pour la relation entre les lieux et les services
         - createTable:
-            tableName: lieu_service
+            tableName: lieu_services
             columns:
               - column:
                   name: lieu_id
@@ -192,31 +192,26 @@ databaseChangeLog:
                   constraints:
                     nullable: false
               - column:
-                  name: service_id
+                  name: services_id
                   type: int
                   constraints:
                     nullable: false
-              - column:
-                  name: is_present
-                  type: boolean
-                  constraints:
-                    nullable: false
         - addPrimaryKey:
-            tableName: lieu_service
-            columnNames: lieu_id, service_id
-            constraintName: PK_LIEU_SERVICE
+            tableName: lieu_services
+            columnNames: lieu_id, services_id
+            constraintName: PK_LIEU_SERVICES
         - addForeignKeyConstraint:
-            baseTableName: lieu_service
+            baseTableName: lieu_services
             baseColumnNames: lieu_id
             referencedTableName: lieu
             referencedColumnNames: id
-            constraintName: FK_LIEU_SERVICE_LIEU
+            constraintName: FK_LIEU_SERVICES_LIEU
         - addForeignKeyConstraint:
-            baseTableName: lieu_service
-            baseColumnNames: service_id
-            referencedTableName: service
+            baseTableName: lieu_services
+            baseColumnNames: services_id
+            referencedTableName: services
             referencedColumnNames: id
-            constraintName: FK_LIEU_SERVICE_SERVICE
+            constraintName: FK_LIEU_SERVICES_SERVICES
 
         # Table user
         - createTable:
@@ -300,3 +295,50 @@ databaseChangeLog:
             referencedTableName: role
             referencedColumnNames: id
             constraintName: FK_USER_ROLE_MAPPING_ROLE
+
+  - changeSet:
+      id: add-trigger-set-reference
+      author: alexitopipo
+      changes:
+        - sql: |
+            CREATE TRIGGER set_reference_before_insert
+            BEFORE INSERT ON reservation
+            FOR EACH ROW
+            BEGIN
+                SET NEW.reference = CONCAT('Ref-', UNIX_TIMESTAMP(NEW.start_date), '-', UNIX_TIMESTAMP(now()));
+            END;
+
+  - changeSet:
+      id: add-default-createdat-attendees
+      author: alexitopipo
+      changes:
+        - sql: |
+            CREATE TRIGGER set_created_date_before_insert
+            BEFORE INSERT ON attendees
+            FOR EACH ROW
+            BEGIN
+                SET NEW.created_at = now();
+            END;
+
+  - changeSet:
+      id: add-phone-column-to-user
+      author: alexitopipo
+      changes:
+          - addColumn:
+              tableName: user
+              columns:
+              - column:
+                  name: phone
+                  type: varchar(20)
+                  constraints:
+                      nullable: true
+
+  - changeSet:
+      id: change-user-column-name-to-lastname
+      author: alexitopipo
+      changes:
+          - renameColumn:
+              tableName: user
+              oldColumnName: name
+              newColumnName: lastname
+              columnDataType: varchar(255)
