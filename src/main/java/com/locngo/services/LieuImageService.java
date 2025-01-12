@@ -3,10 +3,14 @@ package com.locngo.services;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.locngo.dto.CreateLieuImageDto;
 import com.locngo.dto.LieuDto;
+import com.locngo.dto.LieuImageByIdDto;
+import com.locngo.dto.LieuImageByLieuIdDto;
 import com.locngo.dto.LieuImageDto;
 import com.locngo.entity.Lieu;
 import com.locngo.entity.LieuImage;
+import com.locngo.exceptions.ImageNotFoundException;
 import com.locngo.repository.LieuImageRepository;
+import com.locngo.repository.LieuRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -19,20 +23,12 @@ import java.util.stream.Collectors;
 public class LieuImageService {
     @Autowired
     private LieuImageRepository lieuImageRepository;
-    private final ObjectMapper objectMapper;
-    @Value("${links.replacement}") private String replacementImageLink;
 
-    public LieuImageService(ObjectMapper objectMapper) {
-        this.objectMapper = objectMapper;
-    }
+    public LieuImageByLieuIdDto findByLieuId(int lieuId) {
+        var listUrl = new ArrayList<>();
+        this.lieuImageRepository.findByLieuId(lieuId).forEach(lieuImage -> listUrl.add(lieuImage.getImageUrl()));
 
-    public List<LieuImageDto> findByLieuId(int lieuId) {
-        var listLieuImage = this.lieuImageRepository.findByLieuId(lieuId)
-                .stream()
-                .map(lieuImage -> new LieuImageDto(lieuImage.getId(), lieuImage.getImageUrl(), this.objectMapper.convertValue(lieuImage.getLieu(), LieuDto.class)))
-                .collect(Collectors.toList());
-
-        return listLieuImage.isEmpty() ? List.of(new LieuImageDto(0, replacementImageLink, null)) : listLieuImage;
+        return new LieuImageByLieuIdDto(listUrl, lieuId);
     }
 
     public void addImageToLieu(CreateLieuImageDto createLieuImageDto) {
@@ -42,5 +38,10 @@ public class LieuImageService {
 
     public void deleteByLieuId(int lieuId) {
         this.lieuImageRepository.deleteByLieuId(lieuId);
+    }
+
+    public LieuImageByIdDto getById(int imageId) {
+        var lieuImage = this.lieuImageRepository.findById(imageId).orElseThrow(() -> new ImageNotFoundException("Image not found with id " + imageId));
+        return new LieuImageByIdDto(lieuImage.getId(), lieuImage.getImageUrl(), lieuImage.getLieu().getId());
     }
 }

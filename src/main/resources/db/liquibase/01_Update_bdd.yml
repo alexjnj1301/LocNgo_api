@@ -41,3 +41,26 @@ databaseChangeLog:
                     references: user(id)
                     referencedTableName: user
                     referencedColumnNames: id
+
+  - changeSet:
+      id: update-bdd-reservation-table-add-lieu-columns
+      author: alexitopipo
+      changes:
+          - addColumn:
+              tableName: lieu
+              columns:
+              - column:
+                  name: price
+                  type: number
+                  constraints:
+                      nullable: false
+              - column:
+                  name: description
+                  type: blob
+                  constraints:
+                      nullable: false
+              - column:
+                  name: favorite_picture
+                  type: blob
+                  constraints:
+                      nullable: false

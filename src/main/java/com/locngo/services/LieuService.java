@@ -2,18 +2,24 @@ package com.locngo.services;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.locngo.dto.AllLieuResponseDto;
+import com.locngo.dto.CreateLieuDto;
+import com.locngo.dto.CreateLieuImageDto;
 import com.locngo.dto.LieuDto;
 import com.locngo.dto.LieuImageDto;
 import com.locngo.dto.LieuResponseDto;
 import com.locngo.dto.LieuServicesDto;
 import com.locngo.dto.ReservationDto;
+import com.locngo.dto.SetLieuFavoritePictureDto;
 import com.locngo.dto.SimpleServiceDto;
 import com.locngo.entity.Lieu;
+import com.locngo.exceptions.ImageNotFoundException;
 import com.locngo.exceptions.LieuNotFoundException;
+import com.locngo.exceptions.NotAllowedToAccessThisResourceException;
 import com.locngo.repository.LieuRepository;
 import com.locngo.repository.ServicesRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -22,6 +28,7 @@ import java.util.stream.Collectors;
 
 @Service
 public class LieuService {
+    @Value("${links.replacement}") private String replacementImageLink;
     @Autowired
     private LieuRepository lieuRepository;
     @Autowired
@@ -30,7 +37,6 @@ public class LieuService {
     private ServicesRepository servicesRepository;
     @Autowired
     private ReservationService reservationService;
-
     @Autowired
     private LieuImageService lieuImageService;
     private final ObjectMapper objectMapper;
@@ -76,6 +82,9 @@ public class LieuService {
                 lieu.getAddress(),
                 lieu.getCity(),
                 lieu.getPostal_code(),
+                lieu.getPrice(),
+                lieu.getDescription(),
+                lieu.getFavorite_picture(),
                 reservationsDto,
                 imagesDto,
                 servicesDto
@@ -91,16 +100,18 @@ public class LieuService {
                         lieu.getCity(),
                         lieu.getPostal_code(),
                         null,
-                        this.lieuImageService.findByLieuId(lieu.getId()).getFirst().imageUrl(),
+                        this.getFavoritePicture(lieu.getId()).isEmpty() ? replacementImageLink : this.getFavoritePicture(lieu.getId()),
                         null
                 ))
                 .collect(Collectors.toList());
     }
 
-
-    public LieuDto createLieu(LieuDto lieuDto) {
-        var lieu = new Lieu(lieuDto.id(), lieuDto.name(), lieuDto.address(), lieuDto.city(), lieuDto.postal_code(), null, null, null);
-        return this.objectMapper.convertValue(lieuRepository.save(lieu), LieuDto.class);
+    public CreateLieuDto createLieu(CreateLieuDto lieuDto) {
+        var lieu = new Lieu(lieuDto.id(), lieuDto.name(), lieuDto.address(), lieuDto.city(), lieuDto.postal_code(), lieuDto.price(),
+                lieuDto.description(), lieuDto.favorite_picture(), null, null, null);
+        var createdLieu = lieuRepository.save(lieu);
+        this.lieuImageService.addImageToLieu(new CreateLieuImageDto(0, lieuDto.favorite_picture(), createdLieu));
+        return this.objectMapper.convertValue(createdLieu, CreateLieuDto.class);
     }
 
     public LieuDto addServicesToLieu(int lieuId, List<Integer> servicesId) {
@@ -115,7 +126,7 @@ public class LieuService {
     @Transactional
     public void deleteById(int lieuId) {
         var lieu = lieuRepository.findById(lieuId)
-                .orElseThrow(() -> new RuntimeException("Lieu with id " + lieuId + " not found"));
+                .orElseThrow(() -> new LieuNotFoundException("Lieu with id " + lieuId + " not found"));
 
         lieuServicesService.deleteByLieuId(lieuId);
 
@@ -124,5 +135,23 @@ public class LieuService {
         lieuImageService.deleteByLieuId(lieuId);
 
         lieuRepository.delete(lieu);
+    }
+
+    public String getFavoritePicture(int lieuId) {
+        return lieuRepository.findById(lieuId)
+                .orElseThrow(() -> new LieuNotFoundException("Lieu with id " + lieuId + " not found"))
+                .getFavorite_picture();
+    }
+
+    public void setLieuFavoritePicture(SetLieuFavoritePictureDto favoritePictureDto) {
+        var lieuImages = this.lieuImageService.getById(favoritePictureDto.imageId());
+        var lieu = this.lieuRepository.findById(favoritePictureDto.lieuId())
+                .orElseThrow(() -> new LieuNotFoundException("Lieu with id " + favoritePictureDto.lieuId() + " not found"));
+        lieu.getImages().stream()
+                .filter(lieuImage -> lieuImage.getId() == favoritePictureDto.imageId())
+                .findFirst()
+                .orElseThrow(() -> new NotAllowedToAccessThisResourceException("You are not allowed to access this resource"));
+        lieu.setFavorite_picture(lieuImages.imageUrl());
+        this.lieuRepository.save(lieu);
     }
 }

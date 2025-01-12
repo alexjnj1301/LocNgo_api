@@ -44,7 +44,8 @@ public class ReservationService {
                 new ReservationNotFoundException(String.format("Reservation with id %s not found", id))));
 
         var lieu = reservation.getLieu();
-        var lieuDto = new LieuDto(lieu.getId(), lieu.getName(), lieu.getAddress(), lieu.getCity(), lieu.getPostal_code());
+        var lieuDto = new LieuDto(lieu.getId(), lieu.getName(), lieu.getAddress(), lieu.getCity(), lieu.getPostal_code(),
+                lieu.getPrice(), lieu.getDescription(), lieu.getFavorite_picture());
 
         List<ReservationAttendeeDto> attendeesDto = reservation.getAttendees().stream()
                 .map(reservationAttendee -> {
