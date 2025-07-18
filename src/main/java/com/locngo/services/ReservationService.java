@@ -148,14 +148,9 @@ public class ReservationService {
             throw new AccessDeniedException("You do not have permission to access these reservations");
         }
 
-        return reservationRepository.findByUserId(userId).stream()
+        return reservationRepository.findByUserIdOrderByIdDesc(userId).stream()
             .map(
-                    reservation -> {
-                        List<String> lieuImages = reservation.getLieu().getImages().stream()
-                                .map(LieuImage::getImageUrl)
-                                .collect(Collectors.toList());
-                        return new AllReservationsByUserIdDto(reservation.getId(), lieuImages, reservation.getStart_date(), reservation.getEnd_date(), reservation.getReference());
-                    }
+                    reservation -> new AllReservationsByUserIdDto(reservation.getId(), reservation.getLieu().getFavorite_picture(), reservation.getStart_date(), reservation.getEnd_date(), reservation.getReference())
             )
             .collect(Collectors.toList());
     }

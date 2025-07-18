@@ -12,4 +12,5 @@ import java.util.List;
 public interface ReservationRepository extends JpaRepository<Reservation, Integer> {
     List<Reservation> findAllByLieuId(int lieuId);
     List<Reservation> findByUserId(int userId);
+    List<Reservation> findByUserIdOrderByIdDesc(int userId);
 }
