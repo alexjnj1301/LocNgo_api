@@ -14,9 +14,11 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.nio.file.AccessDeniedException;
 import java.util.List;
 
 @RestController
@@ -37,8 +39,9 @@ public class LieuController {
 
     @PostMapping
     @PreAuthorize("hasRole(T(com.locngo.constants.RoleConstants).ROLE_PROPRIETOR)")
-    public CreateLieuDto createLieu(@RequestBody CreateLieuDto lieuDto) {
-        return lieuService.createLieu(lieuDto);
+    public CreateLieuDto createLieu(@RequestBody CreateLieuDto lieuDto, @RequestHeader("Authorization") String authorizationHeader) {
+        var token = authorizationHeader.substring(7);
+        return lieuService.createLieu(lieuDto, token);
     }
 
     @PostMapping("{id}/addservice")
@@ -57,5 +60,12 @@ public class LieuController {
     @PreAuthorize("hasRole(T(com.locngo.constants.RoleConstants).ROLE_PROPRIETOR)")
     public void setLieuFavoritePicture(@RequestBody SetLieuFavoritePictureDto setLieuFavoritePictureDto) {
         lieuService.setLieuFavoritePicture(setLieuFavoritePictureDto);
+    }
+
+    @GetMapping("/proprietor/{id}")
+    @PreAuthorize("hasRole(T(com.locngo.constants.RoleConstants).ROLE_PROPRIETOR)")
+    public List<LieuDto> findByProprietorId(@PathVariable int id, @RequestHeader("Authorization") String authorizationHeader) throws AccessDeniedException {
+        var token = authorizationHeader.substring(7);
+        return lieuService.findByProprietorId(id, token);
     }
 }

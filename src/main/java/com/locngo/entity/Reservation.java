@@ -40,6 +40,8 @@ public class Reservation {
 
     private String reference;
 
+    private String status;
+
     @OneToMany(mappedBy = "reservation", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @JsonIgnoreProperties("reservation")
     private List<ReservationAttendee> attendees;

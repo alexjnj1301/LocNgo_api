@@ -64,3 +64,30 @@ databaseChangeLog:
                   type: blob
                   constraints:
                       nullable: false
+  - changeSet:
+      id: update-bdd-lieu-table-add-proprietor
+      author: alexikicommit
+      changes:
+          - addColumn:
+              tableName: lieu
+              columns:
+                - column:
+                    name: proprietor
+                    type: double
+                    constraints:
+                      nullable: false
+
+  - changeSet:
+      id: update-bdd-reservation-table-add-status
+      author: alexikicommit
+      changes:
+          - addColumn:
+              tableName: reservation
+              columns:
+              - column:
+                  name: status
+                  type: varchar(20)
+                  constraints:
+                      nullable: false
+                      defaultValue: 'PENDING'
+                      checkConstraint: "status IN ('PENDING', 'CONFIRMED', 'CANCELED')"

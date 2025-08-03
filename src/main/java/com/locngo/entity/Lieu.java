@@ -32,6 +32,7 @@ public class Lieu {
     private String price;
     private String description;
     private String favorite_picture;
+    private Double proprietor;
 
     @OneToMany(mappedBy = "lieu")
     @JsonIncludeProperties({"id", "nb_person", "start_date", "end_date", "reference"})

@@ -12,16 +12,19 @@ import com.locngo.dto.ReservationDto;
 import com.locngo.dto.SetLieuFavoritePictureDto;
 import com.locngo.dto.SimpleServiceDto;
 import com.locngo.entity.Lieu;
+import com.locngo.entity.User;
 import com.locngo.exceptions.ImageNotFoundException;
 import com.locngo.exceptions.LieuNotFoundException;
 import com.locngo.exceptions.NotAllowedToAccessThisResourceException;
 import com.locngo.repository.LieuRepository;
 import com.locngo.repository.ServicesRepository;
+import com.locngo.utils.JwtUtils;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.nio.file.AccessDeniedException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -40,7 +43,10 @@ public class LieuService {
     @Autowired
     private LieuImageService lieuImageService;
     private final ObjectMapper objectMapper;
-
+    @Autowired
+    private JwtUtils jwtUtils;
+    @Autowired
+    private UserService userService;
     public LieuService(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
     }
@@ -57,6 +63,7 @@ public class LieuService {
                         reservation.getEnd_date(),
                         reservation.getNb_person(),
                         reservation.getReference(),
+                        reservation.getStatus(),
                         null
                 ))
                 .collect(Collectors.toList());
@@ -106,9 +113,12 @@ public class LieuService {
                 .collect(Collectors.toList());
     }
 
-    public CreateLieuDto createLieu(CreateLieuDto lieuDto) {
+    public CreateLieuDto createLieu(CreateLieuDto lieuDto, String token) {
+        String emailFromToken = jwtUtils.getEmailFromJwtToken(token);
+        User connectedUser = userService.findByEmail(emailFromToken);
+
         var lieu = new Lieu(lieuDto.id(), lieuDto.name(), lieuDto.address(), lieuDto.city(), lieuDto.postal_code(), lieuDto.price(),
-                lieuDto.description(), lieuDto.favorite_picture(), null, null, null);
+                lieuDto.description(), lieuDto.favorite_picture(), (double) connectedUser.getId(), null, null, null);
         var createdLieu = lieuRepository.save(lieu);
         this.lieuImageService.addImageToLieu(new CreateLieuImageDto(0, lieuDto.favorite_picture(), createdLieu));
         return this.objectMapper.convertValue(createdLieu, CreateLieuDto.class);
@@ -153,5 +163,22 @@ public class LieuService {
                 .orElseThrow(() -> new NotAllowedToAccessThisResourceException("You are not allowed to access this resource"));
         lieu.setFavorite_picture(lieuImages.imageUrl());
         this.lieuRepository.save(lieu);
+    }
+
+    @Transactional
+    public List<LieuDto> findByProprietorId(int id, String token) throws AccessDeniedException {
+        User proprietor = userService.findById(id);
+        if (proprietor == null) {
+            throw new LieuNotFoundException("Proprietor with id " + id + " not found");
+        }
+
+        List<Lieu> lieux = lieuRepository.findByProprietor((double) proprietor.getId());
+        if (lieux.isEmpty()) {
+            throw new LieuNotFoundException("No lieux found for proprietor with id " + id);
+        }
+
+        return lieux.stream()
+                .map(lieu -> objectMapper.convertValue(lieu, LieuDto.class))
+                .collect(Collectors.toList());
     }
 }

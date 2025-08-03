@@ -1,18 +1,20 @@
 package com.locngo.services;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.locngo.dto.*;
+import com.locngo.constants.ReservationStatus;
+import com.locngo.dto.AllReservationsByUserIdDto;
+import com.locngo.dto.CreateReservation;
+import com.locngo.dto.LieuDto;
+import com.locngo.dto.ReservationAttendeeDto;
+import com.locngo.dto.ReservationDto;
+import com.locngo.dto.UpdateReservation;
 import com.locngo.entity.Attendees;
-import com.locngo.entity.LieuImage;
 import com.locngo.entity.Reservation;
 import com.locngo.entity.User;
 import com.locngo.exceptions.ReservationNotFoundException;
-import com.locngo.exceptions.UserNotFoundException;
 import com.locngo.repository.ReservationRepository;
 import com.locngo.utils.JwtUtils;
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -56,7 +58,7 @@ public class ReservationService {
 
         return new ReservationDto(reservation.getId(), lieuDto, reservation.getStart_date(), reservation.getEnd_date(),
                 reservation.getNb_person(),
-                reservation.getReference(), attendeesDto
+                reservation.getReference(), reservation.getStatus(), attendeesDto
         );
     }
 
@@ -72,7 +74,7 @@ public class ReservationService {
     public ReservationDto createReservation(CreateReservation reservationDto, String token) {
         var reservation = new Reservation(reservationDto.id(), reservationDto.lieu(), null, reservationDto.start_date(), reservationDto.end_date(),
                 reservationDto.attendees() != null ? reservationDto.attendees().size() : 0,
-                reservationDto.reference(), null);
+                reservationDto.reference(), ReservationStatus.PENDING.name(), null);
 
         reservation.setUser(userService.findByEmail(jwtUtils.getEmailFromJwtToken(token)));
         reservation = reservationRepository.save(reservation);
@@ -80,7 +82,7 @@ public class ReservationService {
         if (reservationDto.attendees() != null) {
             Reservation finalReservation = reservation;
             reservationDto.attendees().forEach(attendeeDto -> {
-                Attendees attendee = new Attendees(attendeeDto.id(), attendeeDto.name(), attendeeDto.firstname(), null, null);
+                Attendees attendee = new Attendees(attendeeDto.id(), finalReservation.getUser().getLastname(), attendeeDto.firstname(), null, null);
                 var createdAttendee = attendeesService.createAttendees(attendee);
                 attendee.setId(createdAttendee.id());
 
@@ -110,7 +112,7 @@ public class ReservationService {
 
         var updatedReservation = new Reservation(reservation.id(), reservation.lieu(), reservation.user(), reservation.start_date(), reservation.end_date(),
                 reservation.attendees() != null ? reservation.attendees().size() : 0,
-                existingReservation.getReference(), existingReservation.getAttendees());
+                existingReservation.getReference(), reservation.status(), existingReservation.getAttendees());
 
         reservationAttendeeService.deleteAll(existingReservation.getAttendees());
         existingReservation.getAttendees().clear();
@@ -144,14 +146,49 @@ public class ReservationService {
 
         User connectedUser = userService.findByEmail(emailFromToken);
 
-        if (connectedUser.getId() != userId || !rolesFromToken.contains("ROLE_ADMIN")) {
+        if (connectedUser.getId() != userId && !rolesFromToken.contains("ROLE_ADMIN")) {
             throw new AccessDeniedException("You do not have permission to access these reservations");
         }
 
         return reservationRepository.findByUserIdOrderByIdDesc(userId).stream()
             .map(
-                    reservation -> new AllReservationsByUserIdDto(reservation.getId(), reservation.getLieu().getFavorite_picture(), reservation.getStart_date(), reservation.getEnd_date(), reservation.getReference())
+                    reservation -> new AllReservationsByUserIdDto(reservation.getId(), reservation.getLieu().getFavorite_picture(), reservation.getStart_date(), reservation.getEnd_date(), reservation.getReference(), reservation.getLieu(), reservation.getStatus())
             )
             .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<ReservationDto> getReservationsByLieuId(int lieuId, String token) throws AccessDeniedException {
+        String emailFromToken = jwtUtils.getEmailFromJwtToken(token);
+        List<String> rolesFromToken = jwtUtils.getRolesFromJwtToken(token);
+
+        User connectedUser = userService.findByEmail(emailFromToken);
+
+        if (!rolesFromToken.contains("ROLE_ADMIN") && connectedUser.getReservations().stream().noneMatch(reservation -> reservation.getLieu().getId() == lieuId)) {
+            throw new AccessDeniedException("You do not have permission to access these reservations");
+        }
+
+        List<ReservationDto> res = reservationRepository.findAllByLieuId(lieuId).stream()
+                .map(reservation -> this.objectMapper.convertValue(reservation, ReservationDto.class))
+                .collect(Collectors.toList());
+
+        res.forEach(reservation -> {
+            List<ReservationAttendeeDto> attendeesDto = reservation.attendees().stream()
+                    .map(reservationAttendee -> new ReservationAttendeeDto(reservationAttendee.attendeeId(), reservationAttendee.name(), reservationAttendee.firstname()))
+                    .collect(Collectors.toList());
+            attendeesDto.addAll(reservation.attendees());
+        });
+        return res;
+    }
+
+    @Transactional
+    public ReservationDto updateReservationStatus(int id, ReservationStatus status) {
+        var reservation = reservationRepository.findById(id)
+                .orElseThrow(() -> new ReservationNotFoundException(String.format("Reservation with id %s not found", id)));
+
+        reservation.setStatus(status.name());
+        reservationRepository.save(reservation);
+
+        return this.objectMapper.convertValue(reservation, ReservationDto.class);
     }
 }
