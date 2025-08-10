@@ -91,3 +91,20 @@ databaseChangeLog:
                       nullable: false
                       defaultValue: 'PENDING'
                       checkConstraint: "status IN ('PENDING', 'CONFIRMED', 'CANCELED')"
+  - changeSet:
+      id: update-bdd-lieu_image-table-update-image_url_type
+      author: alexikicommit
+      changes:
+          - modifyDataType:
+              tableName: lieu_image
+              columnName: image_url
+              newDataType: longblob
+
+  - changeSet:
+      id: update-bdd-lie-table-update-favorite_picture_type
+      author: alexis
+      changes:
+          - modifyDataType:
+              tableName: lieu
+              columnName: favorite_picture
+              newDataType: longblob

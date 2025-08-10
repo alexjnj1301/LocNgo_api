@@ -10,9 +10,15 @@ spring:
   liquibase:
     change-log: classpath:db/liquibase/master.yml
     default-schema: locngo
+  servlet:
+    multipart:
+          enabled: true
+          file-size-threshold: 2MB   # au-delà, écrit sur disque temp
+          max-file-size: 20MB        # taille max d’un fichier
+          max-request-size: 20MB     # taille max de la requête (somme des fichiers)
 jwt:
   secret: f75b4b93f2743033db2ea2afe54d586a5cafe34ffe719090c75e0a8cda2930da
   expirationMs: 7200000
 
 links:
-    replacement: "https://media.istockphoto.com/id/1409329028/vector/no-picture-available-placeholder-thumbnail-icon-illustration-design.jpg?s=612x612&w=0&k=20&c=_zOuJu755g2eEUioiOUdz_mHKJQJn-tDgIAhQzyeKUQ="
+    replacement: "https://test-bucket-locngo.s3.eu-north-1.amazonaws.com/1755021331002istockphoto-1409329028-612x612.jpg"

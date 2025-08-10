@@ -12,6 +12,7 @@ import com.locngo.dto.ReservationDto;
 import com.locngo.dto.SetLieuFavoritePictureDto;
 import com.locngo.dto.SimpleServiceDto;
 import com.locngo.entity.Lieu;
+import com.locngo.entity.LieuImage;
 import com.locngo.entity.User;
 import com.locngo.exceptions.ImageNotFoundException;
 import com.locngo.exceptions.LieuNotFoundException;
@@ -148,9 +149,10 @@ public class LieuService {
     }
 
     public String getFavoritePicture(int lieuId) {
-        return lieuRepository.findById(lieuId)
+        var tmp = lieuRepository.findById(lieuId)
                 .orElseThrow(() -> new LieuNotFoundException("Lieu with id " + lieuId + " not found"))
                 .getFavorite_picture();
+        return tmp;
     }
 
     public void setLieuFavoritePicture(SetLieuFavoritePictureDto favoritePictureDto) {
