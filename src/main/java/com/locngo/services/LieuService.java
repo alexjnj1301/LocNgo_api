@@ -2,26 +2,37 @@ package com.locngo.services;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.locngo.dto.AllLieuResponseDto;
+import com.locngo.dto.CreateLieuDto;
+import com.locngo.dto.CreateLieuImageDto;
 import com.locngo.dto.LieuDto;
 import com.locngo.dto.LieuImageDto;
 import com.locngo.dto.LieuResponseDto;
 import com.locngo.dto.LieuServicesDto;
 import com.locngo.dto.ReservationDto;
+import com.locngo.dto.SetLieuFavoritePictureDto;
 import com.locngo.dto.SimpleServiceDto;
 import com.locngo.entity.Lieu;
+import com.locngo.entity.LieuImage;
+import com.locngo.entity.User;
+import com.locngo.exceptions.ImageNotFoundException;
 import com.locngo.exceptions.LieuNotFoundException;
+import com.locngo.exceptions.NotAllowedToAccessThisResourceException;
 import com.locngo.repository.LieuRepository;
 import com.locngo.repository.ServicesRepository;
+import com.locngo.utils.JwtUtils;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.nio.file.AccessDeniedException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
 public class LieuService {
+    @Value("${links.replacement}") private String replacementImageLink;
     @Autowired
     private LieuRepository lieuRepository;
     @Autowired
@@ -30,11 +41,13 @@ public class LieuService {
     private ServicesRepository servicesRepository;
     @Autowired
     private ReservationService reservationService;
-
     @Autowired
     private LieuImageService lieuImageService;
     private final ObjectMapper objectMapper;
-
+    @Autowired
+    private JwtUtils jwtUtils;
+    @Autowired
+    private UserService userService;
     public LieuService(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
     }
@@ -51,6 +64,7 @@ public class LieuService {
                         reservation.getEnd_date(),
                         reservation.getNb_person(),
                         reservation.getReference(),
+                        reservation.getStatus(),
                         null
                 ))
                 .collect(Collectors.toList());
@@ -76,6 +90,9 @@ public class LieuService {
                 lieu.getAddress(),
                 lieu.getCity(),
                 lieu.getPostal_code(),
+                lieu.getPrice(),
+                lieu.getDescription(),
+                lieu.getFavorite_picture(),
                 reservationsDto,
                 imagesDto,
                 servicesDto
@@ -91,16 +108,21 @@ public class LieuService {
                         lieu.getCity(),
                         lieu.getPostal_code(),
                         null,
-                        this.lieuImageService.findByLieuId(lieu.getId()).getFirst().imageUrl(),
+                        this.getFavoritePicture(lieu.getId()).isEmpty() ? replacementImageLink : this.getFavoritePicture(lieu.getId()),
                         null
                 ))
                 .collect(Collectors.toList());
     }
 
+    public CreateLieuDto createLieu(CreateLieuDto lieuDto, String token) {
+        String emailFromToken = jwtUtils.getEmailFromJwtToken(token);
+        User connectedUser = userService.findByEmail(emailFromToken);
 
-    public LieuDto createLieu(LieuDto lieuDto) {
-        var lieu = new Lieu(lieuDto.id(), lieuDto.name(), lieuDto.address(), lieuDto.city(), lieuDto.postal_code(), null, null, null);
-        return this.objectMapper.convertValue(lieuRepository.save(lieu), LieuDto.class);
+        var lieu = new Lieu(lieuDto.id(), lieuDto.name(), lieuDto.address(), lieuDto.city(), lieuDto.postal_code(), lieuDto.price(),
+                lieuDto.description(), lieuDto.favorite_picture(), (double) connectedUser.getId(), null, null, null);
+        var createdLieu = lieuRepository.save(lieu);
+        this.lieuImageService.addImageToLieu(new CreateLieuImageDto(0, lieuDto.favorite_picture(), createdLieu));
+        return this.objectMapper.convertValue(createdLieu, CreateLieuDto.class);
     }
 
     public LieuDto addServicesToLieu(int lieuId, List<Integer> servicesId) {
@@ -115,7 +137,7 @@ public class LieuService {
     @Transactional
     public void deleteById(int lieuId) {
         var lieu = lieuRepository.findById(lieuId)
-                .orElseThrow(() -> new RuntimeException("Lieu with id " + lieuId + " not found"));
+                .orElseThrow(() -> new LieuNotFoundException("Lieu with id " + lieuId + " not found"));
 
         lieuServicesService.deleteByLieuId(lieuId);
 
@@ -124,5 +146,41 @@ public class LieuService {
         lieuImageService.deleteByLieuId(lieuId);
 
         lieuRepository.delete(lieu);
+    }
+
+    public String getFavoritePicture(int lieuId) {
+        var tmp = lieuRepository.findById(lieuId)
+                .orElseThrow(() -> new LieuNotFoundException("Lieu with id " + lieuId + " not found"))
+                .getFavorite_picture();
+        return tmp;
+    }
+
+    public void setLieuFavoritePicture(SetLieuFavoritePictureDto favoritePictureDto) {
+        var lieuImages = this.lieuImageService.getById(favoritePictureDto.imageId());
+        var lieu = this.lieuRepository.findById(favoritePictureDto.lieuId())
+                .orElseThrow(() -> new LieuNotFoundException("Lieu with id " + favoritePictureDto.lieuId() + " not found"));
+        lieu.getImages().stream()
+                .filter(lieuImage -> lieuImage.getId() == favoritePictureDto.imageId())
+                .findFirst()
+                .orElseThrow(() -> new NotAllowedToAccessThisResourceException("You are not allowed to access this resource"));
+        lieu.setFavorite_picture(lieuImages.imageUrl());
+        this.lieuRepository.save(lieu);
+    }
+
+    @Transactional
+    public List<LieuDto> findByProprietorId(int id, String token) throws AccessDeniedException {
+        User proprietor = userService.findById(id);
+        if (proprietor == null) {
+            throw new LieuNotFoundException("Proprietor with id " + id + " not found");
+        }
+
+        List<Lieu> lieux = lieuRepository.findByProprietor((double) proprietor.getId());
+        if (lieux.isEmpty()) {
+            throw new LieuNotFoundException("No lieux found for proprietor with id " + id);
+        }
+
+        return lieux.stream()
+                .map(lieu -> objectMapper.convertValue(lieu, LieuDto.class))
+                .collect(Collectors.toList());
     }
 }

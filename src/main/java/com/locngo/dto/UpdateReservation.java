@@ -12,5 +12,6 @@ import org.springframework.stereotype.Service;
 import java.util.Date;
 import java.util.List;
 
-public record UpdateReservation(int id, Lieu lieu, User user, Date start_date, Date end_date, int nb_person, List<Attendees> attendees) {
+public record UpdateReservation(int id, Lieu lieu, User user, Date start_date, Date end_date, int nb_person, String status, List<Attendees> attendees) {
 }
+

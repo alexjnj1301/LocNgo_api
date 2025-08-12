@@ -1,9 +1,11 @@
 package com.locngo.controller;
 
+import com.locngo.constants.ReservationStatus;
 import com.locngo.dto.AllReservationsByUserIdDto;
 import com.locngo.dto.CreateReservation;
 import com.locngo.dto.ReservationDto;
 import com.locngo.dto.UpdateReservation;
+import com.locngo.dto.UpdateReservationStatus;
 import com.locngo.services.ReservationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -52,7 +54,7 @@ public class ReservationController {
 
     @PutMapping("/{id}")
     public void updateReservation(@PathVariable int id, @RequestBody UpdateReservation reservation) {
-        var updateReservation = new UpdateReservation(id, reservation.lieu(), reservation.user(), reservation.start_date(), reservation.end_date(), reservation.nb_person(), reservation.attendees());
+        var updateReservation = new UpdateReservation(id, reservation.lieu(), reservation.user(), reservation.start_date(), reservation.end_date(), reservation.nb_person(), reservation.status(), reservation.attendees());
         reservationService.updateById(updateReservation);
     }
 
@@ -61,5 +63,18 @@ public class ReservationController {
         var token = authorizationHeader.substring(7);
         List<AllReservationsByUserIdDto> reservations = reservationService.getReservationsByUserId(userId, token);
         return ResponseEntity.ok(reservations);
+    }
+
+    @GetMapping("/lieu/{lieuId}")
+    public ResponseEntity<List<ReservationDto>> getReservationsByLieuId(@PathVariable int lieuId, @RequestHeader("Authorization") String authorizationHeader) throws AccessDeniedException {
+        var token = authorizationHeader.substring(7);
+        List<ReservationDto> reservations = reservationService.getReservationsByLieuId(lieuId, token);
+        return ResponseEntity.ok(reservations);
+    }
+
+    @PutMapping("/status/{id}")
+    public ResponseEntity<ReservationDto> updateReservationStatus(@PathVariable int id, @RequestBody UpdateReservationStatus reservation) {
+        var updatedReservation = reservationService.updateReservationStatus(id, ReservationStatus.valueOf(reservation.status().toUpperCase()));
+        return ResponseEntity.ok(updatedReservation);
     }
 }

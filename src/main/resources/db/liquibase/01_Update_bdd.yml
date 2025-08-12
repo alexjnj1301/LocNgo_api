@@ -41,3 +41,70 @@ databaseChangeLog:
                     references: user(id)
                     referencedTableName: user
                     referencedColumnNames: id
+
+  - changeSet:
+      id: update-bdd-reservation-table-add-lieu-columns
+      author: alexitopipo
+      changes:
+          - addColumn:
+              tableName: lieu
+              columns:
+              - column:
+                  name: price
+                  type: number
+                  constraints:
+                      nullable: false
+              - column:
+                  name: description
+                  type: blob
+                  constraints:
+                      nullable: false
+              - column:
+                  name: favorite_picture
+                  type: blob
+                  constraints:
+                      nullable: false
+  - changeSet:
+      id: update-bdd-lieu-table-add-proprietor
+      author: alexikicommit
+      changes:
+          - addColumn:
+              tableName: lieu
+              columns:
+                - column:
+                    name: proprietor
+                    type: double
+                    constraints:
+                      nullable: false
+
+  - changeSet:
+      id: update-bdd-reservation-table-add-status
+      author: alexikicommit
+      changes:
+          - addColumn:
+              tableName: reservation
+              columns:
+              - column:
+                  name: status
+                  type: varchar(20)
+                  constraints:
+                      nullable: false
+                      defaultValue: 'PENDING'
+                      checkConstraint: "status IN ('PENDING', 'CONFIRMED', 'CANCELED')"
+  - changeSet:
+      id: update-bdd-lieu_image-table-update-image_url_type
+      author: alexikicommit
+      changes:
+          - modifyDataType:
+              tableName: lieu_image
+              columnName: image_url
+              newDataType: longblob
+
+  - changeSet:
+      id: update-bdd-lie-table-update-favorite_picture_type
+      author: alexis
+      changes:
+          - modifyDataType:
+              tableName: lieu
+              columnName: favorite_picture
+              newDataType: longblob
