@@ -53,11 +53,13 @@ public class LieuImageService {
 //    @Value("${AWS_REGION_NAME}")
 //    private String regionName;
 
-    public LieuImageByLieuIdDto findByLieuId(int lieuId) {
-        var listUrl = new ArrayList<>();
-        this.lieuImageRepository.findByLieuId(lieuId).forEach(lieuImage -> listUrl.add(lieuImage.getImageUrl()));
+    public List<LieuImageByIdDto> findByLieuId(int lieuId) {
+        var lieu = this.lieuRepository.findById(lieuId).orElseThrow(() -> new LieuNotFoundException("Lieu not found with id " + lieuId));
+        List<LieuImage> lieuImages = this.lieuImageRepository.findByLieuId(lieu.getId());
 
-        return new LieuImageByLieuIdDto(listUrl, lieuId);
+        return lieuImages.stream()
+                .map(image -> new LieuImageByIdDto(image.getId(), image.getImageUrl(), image.getLieu().getId()))
+                .collect(Collectors.toList());
     }
 
     public void addImageToLieu(CreateLieuImageDto createLieuImageDto) {
