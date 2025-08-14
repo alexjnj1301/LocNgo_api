@@ -22,3 +22,12 @@ jwt:
 
 links:
     replacement: "https://test-bucket-locngo.s3.eu-north-1.amazonaws.com/1755021331002istockphoto-1409329028-612x612.jpg"
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info
+  endpoint:
+    health:
+      show-details: never

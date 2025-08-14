@@ -108,3 +108,67 @@ databaseChangeLog:
               tableName: lieu
               columnName: favorite_picture
               newDataType: longblob
+
+  - changeSet:
+      id: update-bdd-table-update-role-add-3-roles
+      author: alexikicommit
+      changes:
+          - insert:
+              tableName: role
+              columns:
+                - column:
+                    name: id
+                    value: 1
+                - column:
+                    name: name
+                    value: "ROLE_ADMIN"
+          - insert:
+              tableName: role
+              columns:
+                - column:
+                    name: id
+                    value: 2
+                - column:
+                    name: name
+                    value: "ROLE_PROPRIETAIRE"
+          - insert:
+              tableName: role
+              columns:
+                - column:
+                    name: id
+                    value: 3
+                - column:
+                    name: name
+                    value: "ROLE_USER"
+
+  - changeSet:
+      id: update-bdd-table-user_role_mapping-add-3-roles-to-default-user
+      author: alexikicommit
+      changes:
+          - insert:
+              tableName: user_role_mapping
+              columns:
+                  - column:
+                      name: user_id
+                      value: 999
+                  - column:
+                      name: role_id
+                      value: 1
+          - insert:
+              tableName: user_role_mapping
+              columns:
+                  - column:
+                      name: user_id
+                      value: 999
+                  - column:
+                      name: role_id
+                      value: 2
+          - insert:
+              tableName: user_role_mapping
+              columns:
+                  - column:
+                      name: user_id
+                      value: 999
+                  - column:
+                      name: role_id
+                      value: 3
