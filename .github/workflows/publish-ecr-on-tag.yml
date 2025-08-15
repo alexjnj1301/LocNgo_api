@@ -7,7 +7,6 @@ on:
 
 permissions:
   contents: read
-  id-token: write   # utile si tu passes à OIDC
 
 concurrency:
   group: publish-ecr-${{ github.ref }}
@@ -22,7 +21,9 @@ env:
 
 jobs:
   build-and-push:
+    if: github.ref_type == 'tag'
     runs-on: ubuntu-latest
+    environment: prod
 
     steps:
       - name: Checkout
