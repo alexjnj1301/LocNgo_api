@@ -1,4 +1,6 @@
 package com.locngo.dto;
 
-public record ReservationAttendeeDto(int attendeeId, String name, String firstname) {
-}
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+public record ReservationAttendeeDto(int attendeeId, String name, String firstname) {}

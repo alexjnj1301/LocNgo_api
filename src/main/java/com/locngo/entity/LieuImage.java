@@ -1,6 +1,5 @@
 package com.locngo.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -18,13 +17,13 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class LieuImage {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private int id;
 
-    private String imageUrl;
+  private String imageUrl;
 
-    @ManyToOne
-    @JoinColumn(name = "lieu_id", nullable = false)
-    private Lieu lieu;
+  @ManyToOne
+  @JoinColumn(name = "lieu_id", nullable = false)
+  private Lieu lieu;
 }

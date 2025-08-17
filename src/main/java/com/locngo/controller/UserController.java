@@ -12,12 +12,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/user")
 public class UserController {
-    @Autowired
-    private UserService userService;
+  @Autowired private UserService userService;
 
-    @GetMapping("/{id}")
-    @PreAuthorize("hasRole(T(com.locngo.constants.RoleConstants).ROLE_ADMIN)")
-    public User getUserById(@PathVariable int id) {
-        return userService.findById(id);
-    }
+  @GetMapping("/{id}")
+  @PreAuthorize("hasRole(T(com.locngo.constants.RoleConstants).ROLE_ADMIN)")
+  public User getUserById(@PathVariable int id) {
+    return userService.findById(id);
+  }
 }

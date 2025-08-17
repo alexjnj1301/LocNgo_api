@@ -3,6 +3,7 @@ package com.locngo.controller;
 import com.locngo.dto.CreateServicesDto;
 import com.locngo.dto.ServicesDto;
 import com.locngo.services.ServicesService;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -13,34 +14,31 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
-
 @RestController
 @RequestMapping("/api/services")
 @PreAuthorize("hasRole(T(com.locngo.constants.RoleConstants).ROLE_PROPRIETOR)")
 public class ServicesController {
-    @Autowired
-    private ServicesService servicesService;
+  @Autowired private ServicesService servicesService;
 
-    @GetMapping("/{id}")
-    public ServicesDto getServiceById(@PathVariable int id) {
-        return servicesService.findById(id);
-    }
+  @GetMapping("/{id}")
+  public ServicesDto getServiceById(@PathVariable int id) {
+    return servicesService.findById(id);
+  }
 
-    @GetMapping
-    public List<ServicesDto> findAll() {
-        return servicesService.findAll();
-    }
+  @GetMapping
+  public List<ServicesDto> findAll() {
+    return servicesService.findAll();
+  }
 
-    @PostMapping
-    @PreAuthorize("hasRole(T(com.locngo.constants.RoleConstants).ROLE_ADMIN)")
-    public ServicesDto createService(@RequestBody CreateServicesDto servicesDto) {
-        return servicesService.createService(servicesDto);
-    }
+  @PostMapping
+  @PreAuthorize("hasRole(T(com.locngo.constants.RoleConstants).ROLE_ADMIN)")
+  public ServicesDto createService(@RequestBody CreateServicesDto servicesDto) {
+    return servicesService.createService(servicesDto);
+  }
 
-    @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole(T(com.locngo.constants.RoleConstants).ROLE_ADMIN)")
-    public void deleteService(@PathVariable int id) {
-        servicesService.deleteById(id);
-    }
+  @DeleteMapping("/{id}")
+  @PreAuthorize("hasRole(T(com.locngo.constants.RoleConstants).ROLE_ADMIN)")
+  public void deleteService(@PathVariable int id) {
+    servicesService.deleteById(id);
+  }
 }

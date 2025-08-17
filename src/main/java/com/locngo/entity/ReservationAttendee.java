@@ -1,6 +1,5 @@
 package com.locngo.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
@@ -13,17 +12,15 @@ import lombok.Setter;
 @Getter
 @Setter
 public class ReservationAttendee {
-    @EmbeddedId
-    private ReservationAttendeeId id;
+  @EmbeddedId private ReservationAttendeeId id;
 
-    @ManyToOne
-    @MapsId("reservationId")
-    @JsonIgnoreProperties("attendees")
-    private Reservation reservation;
+  @ManyToOne
+  @MapsId("reservationId")
+  @JsonIgnoreProperties("attendees")
+  private Reservation reservation;
 
-    @ManyToOne
-    @MapsId("attendeeId")
-    @JsonIgnoreProperties({"reservations", "attendees"})
-    private Attendees attendee;
+  @ManyToOne
+  @MapsId("attendeeId")
+  @JsonIgnoreProperties({"reservations", "attendees"})
+  private Attendees attendee;
 }
-

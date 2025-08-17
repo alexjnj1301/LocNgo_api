@@ -16,17 +16,15 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserRoleMapping {
-    @EmbeddedId
-    private UserRoleMappingId id;
+  @EmbeddedId private UserRoleMappingId id;
 
-    @ManyToOne
-    @MapsId("userId")
-    @JsonIgnoreProperties({"roles", "users"})
-    private User user;
+  @ManyToOne
+  @MapsId("userId")
+  @JsonIgnoreProperties({"roles", "users"})
+  private User user;
 
-    @ManyToOne
-    @MapsId("roleId")
-    @JsonIgnoreProperties({"users", "roles"})
-    private Role role;
+  @ManyToOne
+  @MapsId("roleId")
+  @JsonIgnoreProperties({"users", "roles"})
+  private Role role;
 }
-
