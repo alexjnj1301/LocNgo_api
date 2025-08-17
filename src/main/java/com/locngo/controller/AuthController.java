@@ -12,26 +12,24 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
 
-    @Autowired
-    private UserService userService;
+  @Autowired private UserService userService;
 
-    @PostMapping("/login")
-    public ResponseEntity<?> authenticateUser(@RequestBody LoginRequest loginRequest) {
-        var jwt = userService.login(loginRequest);
-        return ResponseEntity.ok(new JwtResponse(jwt));
-    }
+  @PostMapping("/login")
+  public ResponseEntity<?> authenticateUser(@RequestBody LoginRequest loginRequest) {
+    var jwt = userService.login(loginRequest);
+    return ResponseEntity.ok(new JwtResponse(jwt));
+  }
 
-    @PostMapping("/register")
-    public ResponseEntity<UserRegisterDto> register(@RequestBody RegisterRequest registerRequest) {
-        var user = userService.register(registerRequest);
-        var jwt = userService.login(new LoginRequest(registerRequest.email(), registerRequest.password()));
+  @PostMapping("/register")
+  public ResponseEntity<UserRegisterDto> register(@RequestBody RegisterRequest registerRequest) {
+    var user = userService.register(registerRequest);
+    var jwt =
+        userService.login(new LoginRequest(registerRequest.email(), registerRequest.password()));
 
-        return ResponseEntity.ok(new UserRegisterDto(user, jwt));
-    }
+    return ResponseEntity.ok(new UserRegisterDto(user, jwt));
+  }
 }
-

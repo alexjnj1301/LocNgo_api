@@ -13,12 +13,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/user/role")
 public class UserRoleMappingController {
-    @Autowired
-    private UserRoleMappingService userRoleMappingService;
+  @Autowired private UserRoleMappingService userRoleMappingService;
 
-    @PostMapping
-    @PreAuthorize("hasRole(T(com.locngo.constants.RoleConstants).ROLE_ADMIN)")
-    public UserRoleMapping createMapping(@RequestBody UserRoleMappingDto userRoleMappingDto) {
-        return userRoleMappingService.createMapping(userRoleMappingDto);
-    }
+  @PostMapping
+  @PreAuthorize("hasRole(T(com.locngo.constants.RoleConstants).ROLE_ADMIN)")
+  public UserRoleMapping createMapping(@RequestBody UserRoleMappingDto userRoleMappingDto) {
+    return userRoleMappingService.createMapping(userRoleMappingDto);
+  }
 }

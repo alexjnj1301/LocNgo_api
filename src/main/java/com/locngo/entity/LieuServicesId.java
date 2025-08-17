@@ -1,35 +1,34 @@
 package com.locngo.entity;
 
 import jakarta.persistence.Embeddable;
+import java.util.Objects;
 import lombok.Getter;
 import lombok.Setter;
-
-import java.util.Objects;
 
 @Setter
 @Getter
 @Embeddable
 public class LieuServicesId implements java.io.Serializable {
-    private int lieuId;
-    private int servicesId;
+  private int lieuId;
+  private int servicesId;
 
-    public LieuServicesId() {}
+  public LieuServicesId() {}
 
-    public LieuServicesId(int lieuId, int servicesId) {
-        this.lieuId = lieuId;
-        this.servicesId = servicesId;
-    }
+  public LieuServicesId(int lieuId, int servicesId) {
+    this.lieuId = lieuId;
+    this.servicesId = servicesId;
+  }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        LieuServicesId that = (LieuServicesId) o;
-        return lieuId == that.lieuId && servicesId == that.servicesId;
-    }
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    LieuServicesId that = (LieuServicesId) o;
+    return lieuId == that.lieuId && servicesId == that.servicesId;
+  }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(lieuId, servicesId);
-    }
+  @Override
+  public int hashCode() {
+    return Objects.hash(lieuId, servicesId);
+  }
 }

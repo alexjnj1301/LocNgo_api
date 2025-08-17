@@ -1,8 +1,7 @@
 package com.locngo.exceptions;
 
 public class ReservationNotFoundException extends RuntimeException {
-    public ReservationNotFoundException(String message) {
-        super(message);
-    }
+  public ReservationNotFoundException(String message) {
+    super(message);
+  }
 }
-
