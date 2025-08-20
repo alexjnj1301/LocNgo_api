@@ -382,4 +382,4 @@ Les secrets d’exécution applicative (ex. `JWT_SECRET`, accès DB) doivent êt
 
 ---
 **PS**: Concernant l'évaluation de ce projet, il est important de noter que des modifications peuvent être apportées à ce projet après la date butoir de l'évaluation.
-En conséquences, il est important de se fier au tag `v1.1.1` pour l'évaluation, les changements apportés après cette date ne doivent pas être pris en compte dans l'évaluation.
+En conséquences, il est important de se fier au tag `v1.1.2` pour l'évaluation, les changements apportés après cette date ne doivent pas être pris en compte dans l'évaluation.
