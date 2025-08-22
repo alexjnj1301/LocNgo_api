@@ -1,3 +1,5 @@
+# Accès au back deployé (état de santé)
+- https://api-locngo.com/actuator/health
 # 🧰 À propos du projet (Backend)
 
 Ce dépôt correspond à l’**API Locn’Go** (backend) développée avec **Spring Boot 3.x**, **Java 21** et **Maven**.
